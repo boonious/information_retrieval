@@ -7,17 +7,19 @@ defmodule IR.MixProject do
 
   def project do
     [
-      app: :search_exercise,
+      app: :ir,
       version: "0.1.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [coveralls: :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
 
       # Docs
-      name: "search_exercise",
+      name: "information_retrieval",
       description: @description,
-      source_url: "https://github.com/boonious/search_exercise",
-      homepage_url: "https://github.com/boonious/search_exercise",
+      source_url: "https://github.com/boonious/information_retrieval",
+      homepage_url: "https://github.com/boonious/information_retrieval",
       docs: [
         main: "IR",
         extras: ["README.md"]
@@ -36,10 +38,8 @@ defmodule IR.MixProject do
   defp deps do
     [
       {:csv, "~> 2.0.0"},
-      {:httpoison, "~> 1.4.0"},
+      {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
     ]
   end
 end

@@ -5,7 +5,7 @@ defmodule IR do
 
   @doc """
   Parsing CSV dataset or subset.
-  
+
   ### Example
 
   ```
