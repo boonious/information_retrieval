@@ -41,25 +41,21 @@ defmodule IR do
      }}
   ```
   """
-  @spec parse(integer | :all) :: {:ok, list(map)}
-  def parse(num_of_docs) when is_number(num_of_docs) do
+  @spec parse(integer | :all) :: {:ok, %{required(integer) => IR.Doc.t}}
+  def parse(num_of_docs) when is_number(num_of_docs) or is_atom(num_of_docs) do
     data_filepath = Application.get_env :ir, :data_filepath
 
-    corpus = File.stream!(data_filepath)
-      |> CSV.decode!(headers: true)
-      |> Enum.take(num_of_docs)
+    csv_data = cond do
+      is_number(num_of_docs) ->
+        File.stream!(data_filepath) |> CSV.decode!(headers: true) |> Enum.take(num_of_docs)
+      num_of_docs == :all ->
+        File.stream!(data_filepath) |> CSV.decode!(headers: true)
+    end
+
+    corpus = csv_data
       |> Enum.with_index(1)
       |> Enum.into(%{}, fn {doc, i} -> parse(doc, i) end)
-    {:ok, corpus}
-  end
-
-  def parse(:all) do
-    data_filepath = Application.get_env :ir, :data_filepath
-
-    corpus = File.stream!(data_filepath)
-      |> CSV.decode!(headers: true)
-      |> Stream.with_index(1)
-      |> Enum.into(%{}, fn {doc, i} -> parse(doc, i) end)
+ 
     {:ok, corpus}
   end
 

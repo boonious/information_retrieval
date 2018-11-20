@@ -17,6 +17,18 @@ in the following ways:
   instructions forthcoming
 ```
 
+## Requirement
+This application requires [Erlang](http://erlang.org/doc/installation_guide/INSTALL.html).
+To compile and build the application, [Elixir](https://elixir-lang.org) is required.
+You can install Elixir on OS X via Homebrew with:
+
+```bash
+  brew install elixir
+```
+
+The above install both Elixr and Erlang.
+For other OSes, check the [installation instructions](http://elixir-lang.org/install.html) on elixir-lang.org.
+
 ## CSV data
 
 The application assumes test data to be supplied in a CSV file - `data.csv`, in the root directory.
@@ -29,14 +41,15 @@ The default filename and path can be customised in the application configuration
     data_filepath: "another_path/another_filename.csv"
 ```
 
-## Requirement
-This application requires [Erlang](http://erlang.org/doc/installation_guide/INSTALL.html).
-To compile and build the application, [Elixir](https://elixir-lang.org) is required.
-You can install Elixir on OS X via Homebrew with:
+## Documentation
+
+API documentation can be generated with the following command:
 
 ```bash
-  brew install elixir
+  ...$ mix docs
+  Docs successfully generated.
+  View them at "doc/index.html".
 ```
 
-The above install both Elixr and Erlang.
-For other OSes, check the [installation instructions](http://elixir-lang.org/install.html) on elixir-lang.org.
+
+
