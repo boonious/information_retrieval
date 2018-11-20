@@ -18,11 +18,15 @@ defmodule IR do
   """
   @spec parse(integer | :all) :: list(map) | Stream
   def parse(num_of_docs) when is_number(num_of_docs) do
-    File.stream!("data.csv")
+    data_filepath = Application.get_env :ir, :data_filepath
+    File.stream!(data_filepath)
       |> CSV.decode!(headers: true)
       |> Enum.take(num_of_docs)
   end
 
-  def parse(:all), do: File.stream!("data.csv") |> CSV.decode!(headers: true)
+  def parse(:all) do 
+    data_filepath = Application.get_env :ir, :data_filepath
+    File.stream!(data_filepath) |> CSV.decode!(headers: true)
+  end
 
 end
