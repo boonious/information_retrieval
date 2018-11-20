@@ -25,7 +25,7 @@ defmodule IR do
   ### Example
 
   ```
-    # parse the entire dataset (stream)
+    # parse the entire dataset
     iex> {:ok, corpus} = IR.parse(:all)
     ...
 
@@ -76,15 +76,15 @@ defmodule IR do
 
   ```
     # index the entire dataset
-    iex> {:ok, index} = IR.index(:all)
+    iex> {:ok, index} = IR.indexing(:all)
     ...
 
     # index specific number of documents
-    iex> {:ok, index} = IR.index(500)
+    iex> {:ok, index} = IR.indexing(500)
     ... # %{ "term" => "postings"..}
 
-    # index specific number of documents, build text corpus
-    iex> {:ok, index, corpus} = IR.index(5000, corpus: true)
+    # indexing and build text corpus
+    iex> {:ok, index, corpus} = IR.indexing(5000, corpus: true)
     ...
 
   ```
@@ -112,9 +112,7 @@ defmodule IR do
   end
 
   # recursively indexing the documents, storing the results in `index`
-  defp _indexing(docs, id \\ 1,  index \\ %{}, corpus \\ %{})
   defp _indexing([], _id,  index, corpus), do: {index, corpus}
-
   defp _indexing([doc | docs], id, index, corpus) do
     updated_index = (doc["title"] <> " " <> doc["description"])
     |> String.downcase
