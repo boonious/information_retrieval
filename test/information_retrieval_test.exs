@@ -40,4 +40,14 @@ defmodule IRTest do
     assert index["explains"] |> MapSet.to_list == [1,5]
   end
 
+  test "index all docs, build corpus" do
+    Application.put_env :ir, :data_filepath, "test/data/data.csv"
+
+    {:ok, index, corpus} = IR.indexing(:all, corpus: true)
+
+    assert Map.size(index) > 1
+    assert Map.size(corpus) > 1
+    assert index["explains"] |> MapSet.to_list == [1,5]
+  end
+
 end

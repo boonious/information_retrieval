@@ -14,8 +14,11 @@ defmodule IR do
   Documentation for IR.
   """
 
+  @type corpus :: %{required(integer) => IR.Doc.t}
+  @type index :: %{required(binary) => MapSet.t}
+
   @doc """
-  Build a corpus by parsing CSV dataset or subset.
+  Build an in-memory corpus by parsing CSV dataset or subset.
 
   The function automatically assigns ids (starting from 1).
 
@@ -41,7 +44,7 @@ defmodule IR do
      }}
   ```
   """
-  @spec parse(integer | :all) :: {:ok, %{required(integer) => IR.Doc.t}}
+  @spec parse(integer | :all) :: {:ok, corpus}
   def parse(num_of_docs) when is_number(num_of_docs) or is_atom(num_of_docs) do
     data_filepath = Application.get_env :ir, :data_filepath
 
@@ -67,6 +70,8 @@ defmodule IR do
   @doc """
   Create an in-memory inverted index from the CSV dataset or subset.
 
+  Includes a `corpus` boolean option for building an in-memory corpus while indexing.
+
   ### Example
 
   ```
@@ -77,36 +82,55 @@ defmodule IR do
     # index specific number of documents
     iex> {:ok, index} = IR.index(500)
     ... # %{ "term" => "postings"..}
+
+    # index specific number of documents, build text corpus
+    iex> {:ok, index, corpus} = IR.index(5000, corpus: true)
+    ...
+
   ```
   """
-  @spec indexing(integer) :: {:ok, %{required(binary) => MapSet.t}}
-  def indexing(num_of_docs) when is_number(num_of_docs) or is_atom(num_of_docs) do
+  @spec indexing(integer, keyword) :: {:ok, index} | {:ok, index, corpus}
+  def indexing(num_of_docs, options \\ [corpus: false]) when is_number(num_of_docs) or is_atom(num_of_docs) do
     IO.puts "Indexing.."
     data_filepath = Application.get_env :ir, :data_filepath
+    build_corpus? = Keyword.fetch! options, :corpus
 
     csv_data = cond do
       is_number(num_of_docs) ->
         File.stream!(data_filepath) |> CSV.decode!(headers: true) |> Enum.take(num_of_docs)
       num_of_docs == :all ->
         File.stream!(data_filepath) |> CSV.decode!(headers: true) |> Enum.to_list
-
     end
 
-    index = csv_data |> _indexing
-    {:ok, index}
+    id = 1
+    index = %{}
+    corpus = if build_corpus?, do: %{}, else: nil
+
+    {index, corpus} = csv_data |> _indexing(id, index, corpus)
+
+    if build_corpus?, do: {:ok, index, corpus}, else: {:ok, index}
   end
 
   # recursively indexing the documents, storing the results in `index`
-  defp _indexing(docs, id \\ 1,  index \\ %{})
-  defp _indexing([], _id,  index), do: index
-  defp _indexing([doc | docs], id, index) do
+  defp _indexing(docs, id \\ 1,  index \\ %{}, corpus \\ %{})
+  defp _indexing([], _id,  index, corpus), do: {index, corpus}
+
+  defp _indexing([doc | docs], id, index, corpus) do
     updated_index = (doc["title"] <> " " <> doc["description"])
     |> String.downcase
     |> String.split(" ") # simple tokenisation, could stem/remove stopwords later
     |> Enum.uniq
     |> build(id, index)
 
-    _indexing(docs, id + 1, updated_index)
+    # optionally create a corpus
+    updated_corpus = unless is_nil(corpus) do
+      {_, doc_struct} = parse(doc, id)
+      Map.put corpus, id, doc_struct
+    else
+      nil
+    end
+
+    _indexing(docs, id + 1, updated_index, updated_corpus)
   end
 
   # recursively create a set of doc IDs postings per term
