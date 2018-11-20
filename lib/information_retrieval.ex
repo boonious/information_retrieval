@@ -63,4 +63,61 @@ defmodule IR do
   def parse(doc, id) do
     {id, %IR.Doc{ :title => doc["title"], :description => doc["description"]}}
   end
+
+  @doc """
+  Create an in-memory inverted index from the CSV dataset or subset.
+
+  ### Example
+
+  ```
+    # index the entire dataset
+    iex> {:ok, index} = IR.index(:all)
+    ...
+
+    # index specific number of documents
+    iex> {:ok, index} = IR.index(500)
+    ... # %{ "term" => "postings"..}
+  ```
+  """
+  @spec indexing(integer) :: {:ok, %{required(binary) => MapSet.t}}
+  def indexing(num_of_docs) when is_number(num_of_docs) or is_atom(num_of_docs) do
+    IO.puts "Indexing.."
+    data_filepath = Application.get_env :ir, :data_filepath
+
+    csv_data = cond do
+      is_number(num_of_docs) ->
+        File.stream!(data_filepath) |> CSV.decode!(headers: true) |> Enum.take(num_of_docs)
+      num_of_docs == :all ->
+        File.stream!(data_filepath) |> CSV.decode!(headers: true) |> Enum.to_list
+
+    end
+
+    index = csv_data |> _indexing
+    {:ok, index}
+  end
+
+  # recursively indexing the documents, storing the results in `index`
+  defp _indexing(docs, id \\ 1,  index \\ %{})
+  defp _indexing([], _id,  index), do: index
+  defp _indexing([doc | docs], id, index) do
+    updated_index = (doc["title"] <> " " <> doc["description"])
+    |> String.downcase
+    |> String.split(" ") # simple tokenisation, could stem/remove stopwords later
+    |> Enum.uniq
+    |> build(id, index)
+
+    _indexing(docs, id + 1, updated_index)
+  end
+
+  # recursively create a set of doc IDs postings per term
+  defp build([], _id, index), do: index
+  defp build([term|terms], id, index) do
+    postings = if is_nil(index[term]), do: MapSet.new(), else: index[term]
+
+    updated_postings = MapSet.put(postings, id)
+    updated_index = Map.put index, term, updated_postings
+
+    build(terms, id, updated_index)
+  end
+
 end

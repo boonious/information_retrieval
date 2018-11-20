@@ -22,4 +22,22 @@ defmodule IRTest do
     assert Map.size(corpus) > 1
   end
 
+  test "index a single doc" do
+    Application.put_env :ir, :data_filepath, "test/data/data.csv"
+
+    {:ok, index} = IR.indexing(1)
+
+    assert Map.size(index) > 1
+    assert index["black"] |> MapSet.to_list == [1]
+  end
+
+  test "index all docs" do
+    Application.put_env :ir, :data_filepath, "test/data/data.csv"
+
+    {:ok, index} = IR.indexing(:all)
+
+    assert Map.size(index) > 1
+    assert index["explains"] |> MapSet.to_list == [1,5]
+  end
+
 end
