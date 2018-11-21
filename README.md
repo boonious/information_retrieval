@@ -4,10 +4,12 @@ IR is an [Elixir-based](https://elixir-lang.org) exercise in information retriev
 
 ### Usage - Interactive Elixir (IEx)
 
-The application can be invoked interactively through [IEx](https://elixir-lang.org/getting-started/introduction.html#interactive-mode).
+The application can be invoked interactively through
+[IEx](https://elixir-lang.org/getting-started/introduction.html#interactive-mode).
 
 
 ```bash
+  # from application home directory,
   # start IEx with the application running
   # this will also compile the application if it hasn't been compiled
   ...$ iex -S mix
@@ -38,14 +40,23 @@ The application can be invoked interactively through [IEx](https://elixir-lang.o
   # more instructions forthcoming
 ```
 
-### Command line interface
+## CSV data
+
+A dataset can be supplied in a CSV file named `data.csv`, in the application
+home directory. It currently imports `title` and `description` columns
+which should be specified with such headers in the file.
+Existing data from other columns will not be parsed.
+
+The default dataset filename and path can be configured in
+`config/config.exs`:
 
 ```elixir
-
+  config :ir,
+    data_filepath: "another_path/another_filename.csv"
 ```
 
 ## Requirement
-This application requires [Erlang](http://erlang.org/doc/installation_guide/INSTALL.html).
+This application is based on [Erlang](http://erlang.org/doc/installation_guide/INSTALL.html).
 To compile and build the application, [Elixir](https://elixir-lang.org) is required.
 You can install Elixir on OS X via Homebrew with:
 
@@ -53,25 +64,13 @@ You can install Elixir on OS X via Homebrew with:
   brew install elixir
 ```
 
-The above install both Elixr and Erlang.
+The above installs both Elixr and Erlang.
 For other OSes, check the [installation instructions](http://elixir-lang.org/install.html) on elixir-lang.org.
 
 To compile the application, run the following from the application home directory:
 
 ```elixir
   ...$ mix deps.get; mix compile
-```
-
-## CSV data
-
-The application assumes test data to be supplied in a CSV file - `data.csv`, in the root directory.
-It currently uses `title` and `description` fields should be specified with headers in the file.
-
-The default filename and path can be customised in the application configuration:
-
-```elixir
-  config :ir,
-    data_filepath: "another_path/another_filename.csv"
 ```
 
 ## Documentation
