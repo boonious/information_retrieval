@@ -50,8 +50,7 @@ a corpus and index of 1000 (max) docs from the
 CSV dataset if pre-created index / corpus are not supplied.
 The query will be issued on this small index.
 
-Unranked docs (ids) are currently being returned.
-Work on results ranking is underway.
+Ranked docs (ids) with scores are currently being returned.
 
 ```elixir
   # quick search test with up to 1000 max docs

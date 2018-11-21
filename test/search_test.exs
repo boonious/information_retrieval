@@ -10,23 +10,23 @@ defmodule IRSearchTest do
 
   test "single keyword search - without supplying index/corpus" do
     doc_ids = IR.q "art"
-    assert doc_ids == [4, 5]
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [4, 5]
   end
 
   test "keywords search - OR boolean", %{index: index, corpus: corpus} do
     doc_ids = IR.q "van sdfsdfd eyck", index: index, corpus: corpus
-    assert doc_ids == [4, 5, 6]
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [4, 5, 6]
 
     doc_ids = IR.q "christopher columbus carlo rovelli", index: index, corpus: corpus
-    assert doc_ids == [1, 7]
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [1, 7]
 
     doc_ids = IR.q "northern renaissance van eyck", index: index, corpus: corpus
-    assert doc_ids == [4, 5, 6, 7]
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [4, 5, 6, 7]
   end
 
   test "keywords search - AND boolean", %{index: index, corpus: corpus} do
     doc_ids = IR.q "northern renaissance van eyck", index: index, corpus: corpus, op: :and
-    assert doc_ids == [4, 5, 6]
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [4, 5, 6]
   end
 
   test "keywords search - 0 results" do

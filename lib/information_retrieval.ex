@@ -236,12 +236,18 @@ defmodule IR do
     num_of_results = length unranked_docs_ids
     IO.puts "Found #{num_of_results} results."
 
-    if num_of_results > 1 do
-      idfs = idf(terms, index, corpus)
-      _term_doc_matrix = tdm(unranked_docs_ids, idfs, terms, corpus)
-    end
+    idfs = idf(terms, index, corpus)
+    term_doc_matrix = tdm(unranked_docs_ids, idfs, terms, corpus)
 
-    unranked_docs_ids
+    # ranked documents based on the sum td-idf vector for now
+    #
+    # next: could derive scores by computing cosine similarity 
+    # between doc vectors and search term vector
+    ranked_ids_with_scores = term_doc_matrix 
+    |> Enum.map(fn {doc_id, vector} -> {doc_id, Enum.sum(vector) |> Float.round(5)} end) 
+    |> Enum.sort_by(&(elem(&1,1)),  &>=/2)
+
+    ranked_ids_with_scores
   end
 
   # single keyword postings
