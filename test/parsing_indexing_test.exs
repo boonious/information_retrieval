@@ -1,4 +1,4 @@
-defmodule IRTest do
+defmodule IRParseIndexTest do
   use ExUnit.Case
 
   setup do

@@ -150,4 +150,110 @@ defmodule IR do
     |> Enum.uniq
   end
 
+  @doc """
+  Issue a search query on a given index and corpus.
+
+  For quick test, the function will generate a corpus and index of 1000 (max) docs from the
+  CSV dataset if pre-created index / corpus are not supplied.
+  The query will be issued on this small index.
+
+  Options:
+
+  - `:op` - default `:or`, match ALL (`:and`) or ANY (`:or`) terms in the query
+  - `:corpus`, parsed data required for results display and ranking purposes
+  - `:index`, pre-created search data for querying and ranking purposes
+
+  ### Example
+
+  ```
+    # quick search test with up to 1000 max docs
+    iex> IR.q "northern renaissance van eyck"
+    Indexing..
+    Found 4 results.
+    [4, 5, 6, 7] # currenty return unranked doc IDs
+
+    # stricter AND boolean search
+    iex(9)> IR.q "northern renaissance van eyck", op: :and
+    Indexing..
+    Found 2 results.
+    [5, 6]
+
+    # create in-memory index and corpus for the entire CSV dataset
+    # ( > 1000 docs)
+    iex> {:ok, index, corpus} = IR.indexing(:all, corpus: true)
+    ..
+
+    # use the index / corpus in search
+    iex> IR.q "renaissance", index: index, corpus: corpus
+    ..
+
+    # re-use the corpus / index for another search
+    iex> IR.q "van eyck", index: index, corpus: corpus, op: :and
+    ..
+
+  ```
+  """
+  @spec q(binary, keyword) :: list[binary]
+  def q(query, opts \\ [index: nil, corpus: nil, op: :or])
+  def q(query, opts) do
+    op = if opts[:op], do: opts[:op], else: :or
+
+    # index and build a corpus for 1000 documents from the dataset
+    # if no index / corpus are provided
+    if is_nil(opts[:index]) or is_nil(opts[:corpus]) do
+      {:ok, index, corpus} = indexing(1000, corpus: true)
+      q(query, index, corpus, op)
+    else
+      q(query, opts[:index], opts[:corpus], op)
+    end
+  end
+
+  @doc false
+  def q(query, index, _corpus, op) do
+    posting_sets = query
+    |> analyse
+    |> Enum.map(&(index[&1]))
+
+    unranked_docs_ids = cond do
+      # any nil postings indicates a missing term, 0 result (AND boolean)
+      op == :and and Enum.member?(posting_sets, nil) -> []
+      op == :and ->
+        posting_sets
+        |> ids_from_postings(:and)
+        |> MapSet.to_list
+
+      # remove nil postings of missing terms, get ids for the rest of the terms (OR boolean)
+      op == :or ->
+        posting_sets
+        |> Enum.reject(&is_nil(&1))
+        |> ids_from_postings(:or)
+        |> MapSet.to_list
+    end
+
+    IO.puts "Found #{length unranked_docs_ids} results."
+    unranked_docs_ids
+  end
+
+  # single keyword postings
+  defp ids_from_postings([set], _) when is_map(set), do: set
+  defp ids_from_postings([], _), do: MapSet.new([])
+
+  # find docs containing all terms: AND boolean query
+  # posting sets intersection
+  defp ids_from_postings([set1, set2], :and) when is_map(set1) and is_map(set2) do
+    MapSet.intersection(set1, set2)
+  end
+
+  # > 3 terms, AND boolean
+  defp ids_from_postings([set1 | set2], :and) when is_map(set1) and is_list(set2) do
+    set1 |> MapSet.intersection(ids_from_postings(set2, :and))
+  end
+
+  # find docs containing any of the terms: OR boolean query
+  # sets union
+  defp ids_from_postings([set1, set2], :or) when is_map(set1) and is_map(set2), do: MapSet.union(set1, set2)
+  defp ids_from_postings([set1 | set2], :or) when is_map(set1) and is_list(set2) do
+    set1 |> MapSet.union(ids_from_postings(set2, :or))
+  end
+
 end
