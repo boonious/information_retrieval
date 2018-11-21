@@ -212,10 +212,9 @@ defmodule IR do
   end
 
   @doc false
-  def q(query, index, _corpus, op) do
-    posting_sets = query
-    |> analyse
-    |> Enum.map(&(index[&1]))
+  def q(query, index, corpus, op) do
+    terms = query |> analyse
+    posting_sets = terms |> Enum.map(&(index[&1]))
 
     unranked_docs_ids = cond do
       # any nil postings indicates a missing term, 0 result (AND boolean)
@@ -233,7 +232,13 @@ defmodule IR do
         |> MapSet.to_list
     end
 
-    IO.puts "Found #{length unranked_docs_ids} results."
+    num_of_results = length unranked_docs_ids
+    IO.puts "Found #{num_of_results} results."
+
+    if num_of_results > 1 do
+      _idfs = idf(terms, index, corpus)
+    end
+
     unranked_docs_ids
   end
 
@@ -254,9 +259,39 @@ defmodule IR do
 
   # find docs containing any of the terms: OR boolean query
   # sets union
-  defp ids_from_postings([set1, set2], :or) when is_map(set1) and is_map(set2), do: MapSet.union(set1, set2)
+  defp ids_from_postings([set1, set2], :or) when is_map(set1) and is_map(set2) do
+    MapSet.union(set1, set2)
+  end
+
+  # > 3 terms, OR boolean
   defp ids_from_postings([set1 | set2], :or) when is_map(set1) and is_list(set2) do
     set1 |> MapSet.union(ids_from_postings(set2, :or))
+  end
+
+  @doc """
+  Calculate inverse document frequency (IDF) for a given list of terms, index and corpus.
+
+  Returns IDF value per term in a map.
+
+  ```
+    %{
+      "eyck" => 0.5596157879354227,
+      "northern" => 0.3364722366212129,
+      "renaissance" => 0.3364722366212129,
+      "van" => 0.5596157879354227
+    }
+  ```
+  """
+  @spec idf(list(binary), index, corpus) :: map
+  def idf(terms, index, corpus) do
+    total_docs = Map.size corpus
+
+    for term <- terms, index[term] != nil, into: %{} do
+      df = index[term] |> MapSet.size
+      idf = :math.log(total_docs / (1 + df))
+      {term, idf}
+    end
+
   end
 
 end
