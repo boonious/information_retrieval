@@ -54,27 +54,34 @@ Doc ids and scores are currently being returned as results.
 
 ```elixir
   # quick search test with up to 1000 max docs
+  # also returns IDs with scores, {id, score}
   iex> IR.q "northern renaissance van eyck"
   Indexing..
   Found 4 results.
-  [4, 5, 6, 7] # currenty return unranked doc IDs
+  .... # <- search results
+  [{4, 1.79218}, {5, 1.79218}, {6, 1.79218}, {7, 0.67294}]
 
   # stricter AND boolean search
   iex(9)> IR.q "northern renaissance van eyck", op: :and
   Indexing..
   Found 2 results.
-  [5, 6]
+  ....
+  [{4, 1.79218}, {5, 1.79218}, {6, 1.79218}]
+
 
   # create in-memory index and corpus for the entire CSV dataset
   # ( > 1000 docs), it'll take awhile for a large dataset
   iex> {:ok, index, corpus} = IR.indexing(:all, corpus: true)
+  ...
 
   # use the index / corpus in search
   iex> IR.q "renaissance", index: index, corpus: corpus
+  ...
 
   # re-use the corpus / index for another search
   # without waiting for indexing
   iex> IR.q "van eyck", index: index, corpus: corpus, op: :and
+  ...
 
 
 ```
@@ -85,6 +92,7 @@ Ranking and sorting of results can be toggled with the `:sort` option.
   iex> IR.q "christopher columbus carlo eyck galileo galilei", sort: false
   Indexing..
   Found 5 results.
+  ...
   [{1, 1.25276}, {4, 0.55962}, {5, 0.55962}, {6, 0.55962}, {7, 5.01105}]
 
   # ranking with relevancy

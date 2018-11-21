@@ -248,12 +248,24 @@ defmodule IR do
     unranked_ids_with_scores = term_doc_matrix
     |> Enum.map(fn {doc_id, vector} -> {doc_id, Enum.sum(vector) |> Float.round(5)} end)
 
-    case sort do
+    ids_scores = case sort do
       true ->
         unranked_ids_with_scores |> Enum.sort_by(&(elem(&1,1)),  &>=/2)
       false -> unranked_ids_with_scores
       _ -> unranked_ids_with_scores 
     end
+
+    for {id, score} <- ids_scores do
+      title = corpus[id].title |> String.slice(0,100)
+      description = corpus[id].description |> String.slice(0,100)
+      IO.puts "\ndoc no: #{id}, score: #{score}"
+      IO.puts title
+      IO.puts description <> " ..."
+      IO.puts "========================"
+    end
+
+    IO.puts ""
+    ids_scores
 
   end
 
