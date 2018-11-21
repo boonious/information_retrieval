@@ -70,7 +70,8 @@ defmodule IR do
   @doc """
   Create an in-memory inverted index from the CSV dataset or subset.
 
-  Includes a `corpus` boolean option for building an in-memory corpus while indexing.
+  Includes a `corpus` boolean option (default to `false`)
+  for building an in-memory corpus while indexing.
 
   ### Example
 
@@ -90,10 +91,10 @@ defmodule IR do
   ```
   """
   @spec indexing(integer, keyword) :: {:ok, index} | {:ok, index, corpus}
-  def indexing(num_of_docs, options \\ [corpus: false]) when is_number(num_of_docs) or is_atom(num_of_docs) do
+  def indexing(num_of_docs, opts \\ [corpus: false]) when is_number(num_of_docs) or is_atom(num_of_docs) do
     IO.puts "Indexing.."
     data_filepath = Application.get_env :ir, :data_filepath
-    build_corpus? = Keyword.fetch! options, :corpus
+    build_corpus? = Keyword.fetch! opts, :corpus
 
     csv_data = cond do
       is_number(num_of_docs) ->
@@ -115,9 +116,7 @@ defmodule IR do
   defp _indexing([], _id,  index, corpus), do: {index, corpus}
   defp _indexing([doc | docs], id, index, corpus) do
     updated_index = (doc["title"] <> " " <> doc["description"])
-    |> String.downcase
-    |> String.split(" ") # simple tokenisation, could stem/remove stopwords later
-    |> Enum.uniq
+    |> analyse
     |> build(id, index)
 
     # optionally create a corpus
@@ -140,6 +139,15 @@ defmodule IR do
     updated_index = Map.put index, term, updated_postings
 
     build(terms, id, updated_index)
+  end
+
+  # simple tokenisation, could clean/stem/remove stopwords later
+  @doc false
+  def analyse(text) do
+    text
+    |> String.downcase
+    |> String.split(" ")
+    |> Enum.uniq
   end
 
 end
