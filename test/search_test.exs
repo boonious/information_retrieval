@@ -3,9 +3,9 @@ defmodule IRSearchTest do
 
   setup do
     Application.put_env :ir, :data_filepath, "test/data/data.csv"
- 
+
     {:ok, index, corpus} = IR.indexing(:all, corpus: true)
-    {:ok, index: index, corpus: corpus} 
+    {:ok, index: index, corpus: corpus}
   end
 
   test "single keyword search - without supplying index/corpus" do
@@ -13,7 +13,7 @@ defmodule IRSearchTest do
     assert doc_ids == [4, 5]
   end
 
-  test "keywords search - OR boolean", %{index: index, corpus: corpus} do    
+  test "keywords search - OR boolean", %{index: index, corpus: corpus} do
     doc_ids = IR.q "van sdfsdfd eyck", index: index, corpus: corpus
     assert doc_ids == [4, 5, 6]
 

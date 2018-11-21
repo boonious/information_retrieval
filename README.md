@@ -1,6 +1,6 @@
 # IR [![Build Status](https://travis-ci.org/boonious/information_retrieval.svg?branch=master)](https://travis-ci.org/boonious/information_retrieval) [![Coverage Status](https://coveralls.io/repos/github/boonious/information_retrieval/badge.svg?branch=master)](https://coveralls.io/github/boonious/information_retrieval?branch=master)
 
-IR is an [Elixir-based](https://elixir-lang.org) exercise in information retrieval, in-memory indexing and full-text searching.
+IR is an [Elixir-based](https://elixir-lang.org) exercise in information retrieval, in-memory indexing and full-text searching of CSV dataset.
 
 ### Usage - Interactive Elixir (IEx)
 
@@ -16,8 +16,10 @@ The application can be invoked interactively through
     
   # or start IEx with shell history
   ..$ iex --erl "-kernel shell_history enabled" -S mix
-  
+
 ```
+
+Dataset parsing and indexing:
 
 ```elixir
   # build an in-memory corpus for the entire dataset
@@ -37,7 +39,45 @@ The application can be invoked interactively through
   iex> {:ok, index, corpus} = IR.indexing(5000, corpus: true)
   ...
 
-  # more instructions forthcoming
+
+```
+
+The generated corpus and index can be used in search queries.
+
+For quick tests, the application's search function - `IR.q`
+will automatically generate
+a corpus and index of 1000 (max) docs from the
+CSV dataset if pre-created index / corpus are not supplied.
+The query will be issued on this small index.
+
+Unranked docs (ids) are currently being returned.
+Work on results ranking is underway.
+
+```elixir
+  # quick search test with up to 1000 max docs
+  iex> IR.q "northern renaissance van eyck"
+  Indexing..
+  Found 4 results.
+  [4, 5, 6, 7] # currenty return unranked doc IDs
+
+  # stricter AND boolean search
+  iex(9)> IR.q "northern renaissance van eyck", op: :and
+  Indexing..
+  Found 2 results.
+  [5, 6]
+
+  # create in-memory index and corpus for the entire CSV dataset
+  # ( > 1000 docs), it'll take awhile for a large dataset
+  iex> {:ok, index, corpus} = IR.indexing(:all, corpus: true)
+
+  # use the index / corpus in search
+  iex> IR.q "renaissance", index: index, corpus: corpus
+
+  # re-use the corpus / index for another search
+  # without waiting for indexing
+  iex> IR.q "van eyck", index: index, corpus: corpus, op: :and
+
+
 ```
 
 ## CSV data

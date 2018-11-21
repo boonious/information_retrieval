@@ -16,7 +16,7 @@ defmodule IR.MixProject do
       preferred_cli_env: [coveralls: :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
 
       # Docs
-      name: "information_retrieval",
+      name: "IR",
       description: @description,
       source_url: "https://github.com/boonious/information_retrieval",
       homepage_url: "https://github.com/boonious/information_retrieval",

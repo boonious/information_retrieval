@@ -153,7 +153,7 @@ defmodule IR do
   @doc """
   Issue a search query on a given index and corpus.
 
-  For quick test, the function will generate a corpus and index of 1000 (max) docs from the
+  For quick tests, the function will generate a corpus and index of 1000 (max) docs from the
   CSV dataset if pre-created index / corpus are not supplied.
   The query will be issued on this small index.
 
