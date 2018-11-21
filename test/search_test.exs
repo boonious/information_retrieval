@@ -19,6 +19,9 @@ defmodule IRSearchTest do
 
     doc_ids = IR.q "christopher columbus carlo rovelli", index: index, corpus: corpus
     assert doc_ids == [1, 7]
+
+    doc_ids = IR.q "northern renaissance van eyck", index: index, corpus: corpus
+    assert doc_ids == [4, 5, 6, 7]
   end
 
   test "keywords search - AND boolean", %{index: index, corpus: corpus} do
