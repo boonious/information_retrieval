@@ -17,6 +17,7 @@ defmodule IR do
   @type corpus :: %{required(integer) => IR.Doc.t}
   @type index :: %{required(binary) => MapSet.t}
   @type term_document_matrix :: %{required(binary) => list(number)}
+  @type term_idfs :: %{required(binary) => number}
 
   @doc """
   Build an in-memory corpus by parsing CSV dataset or subset.
@@ -279,7 +280,7 @@ defmodule IR do
   @doc """
   Construct Term-Document-Matrix (TDM) for a given list of documents and terms.
   """
-  @spec tdm(list(binary), map, list(binary), corpus) :: term_document_matrix
+  @spec tdm(list(binary), term_idfs, list(binary), corpus) :: term_document_matrix
   def tdm(doc_ids, idfs, terms, corpus) do
     for doc_id <- doc_ids, into: %{} do
       {doc_id, tfidf_vector(terms, doc_id, idfs, corpus, [])}
@@ -300,7 +301,7 @@ defmodule IR do
     }
   ```
   """
-  @spec idf(list(binary), index, corpus) :: map
+  @spec idf(list(binary), index, corpus) :: term_idfs
   def idf(terms, index, corpus) do
     total_docs = Map.size corpus
 
@@ -315,7 +316,7 @@ defmodule IR do
   @doc """
   Construct term frequency inverse document frequency (tf-idf) terms vector (List) for a given document and terms.
   """
-  @spec tfidf_vector(list(binary), binary, map, corpus, list(number)) :: list(number)
+  @spec tfidf_vector(list(binary), binary, term_idfs, corpus, list(number)) :: list(number)
   def tfidf_vector(terms, doc_id, idfs, corpus, vector)
   def tfidf_vector([], _doc_id, _idfs, _corpus, vector), do: vector
   def tfidf_vector([term|terms], doc_id, idfs, corpus, vector) do
