@@ -167,6 +167,7 @@ defmodule IR do
   - `:op` - default `:or`, match ALL (`:and`) or ANY (`:or`) terms in the query
   - `:corpus`, parsed data required for results display and ranking purposes
   - `:index`, pre-created search data for querying and ranking purposes
+  - `:sort` default `true`, rank results by relevancy
 
   ### Example
 
@@ -199,7 +200,7 @@ defmodule IR do
   ```
   """
   @spec q(binary, keyword) :: list[binary]
-  def q(query, opts \\ [index: nil, corpus: nil, op: :or])
+  def q(query, opts \\ [index: nil, corpus: nil, op: :or, sort: true])
   def q(query, opts) do
     op = if opts[:op], do: opts[:op], else: :or
 
@@ -207,14 +208,14 @@ defmodule IR do
     # if no index / corpus are provided
     if is_nil(opts[:index]) or is_nil(opts[:corpus]) do
       {:ok, index, corpus} = indexing(1000, corpus: true)
-      q(query, index, corpus, op)
+      q(query, index, corpus, op, opts[:sort])
     else
-      q(query, opts[:index], opts[:corpus], op)
+      q(query, opts[:index], opts[:corpus], op, opts[:sort])
     end
   end
 
   @doc false
-  def q(query, index, corpus, op) do
+  def q(query, index, corpus, op, sort) do
     terms = query |> analyse
     posting_sets = terms |> Enum.map(&(index[&1]))
 
@@ -244,11 +245,16 @@ defmodule IR do
     #
     # next: could derive scores by computing cosine similarity 
     # between doc vectors and search term vector
-    ranked_ids_with_scores = term_doc_matrix 
-    |> Enum.map(fn {doc_id, vector} -> {doc_id, Enum.sum(vector) |> Float.round(5)} end) 
-    |> Enum.sort_by(&(elem(&1,1)),  &>=/2)
+    unranked_ids_with_scores = term_doc_matrix
+    |> Enum.map(fn {doc_id, vector} -> {doc_id, Enum.sum(vector) |> Float.round(5)} end)
 
-    ranked_ids_with_scores
+    case sort do
+      true ->
+        unranked_ids_with_scores |> Enum.sort_by(&(elem(&1,1)),  &>=/2)
+      false -> unranked_ids_with_scores
+      _ -> unranked_ids_with_scores 
+    end
+
   end
 
   # single keyword postings

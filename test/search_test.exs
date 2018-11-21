@@ -46,4 +46,12 @@ defmodule IRSearchTest do
     assert doc_ids == []
   end
 
+  test "ranking keywords search results", %{index: index, corpus: corpus} do
+    doc_ids = IR.q "christopher columbus carlo eyck galileo galilei", index: index, corpus: corpus, sort: false
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [1, 4, 5, 6, 7]
+
+    doc_ids = IR.q "christopher columbus carlo eyck galileo galilei", index: index, corpus: corpus, sort: true
+    assert doc_ids |> Enum.map(&(elem(&1,0))) == [7, 1, 4, 5, 6]
+  end
+
 end

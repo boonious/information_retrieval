@@ -50,7 +50,7 @@ a corpus and index of 1000 (max) docs from the
 CSV dataset if pre-created index / corpus are not supplied.
 The query will be issued on this small index.
 
-Ranked docs (ids) with scores are currently being returned.
+Doc ids and scores are currently being returned as results.
 
 ```elixir
   # quick search test with up to 1000 max docs
@@ -75,6 +75,23 @@ Ranked docs (ids) with scores are currently being returned.
   # re-use the corpus / index for another search
   # without waiting for indexing
   iex> IR.q "van eyck", index: index, corpus: corpus, op: :and
+
+
+```
+
+Ranking and sorting of results can be toggled with the `:sort` option.
+
+```elixir
+  iex> IR.q "christopher columbus carlo eyck galileo galilei", sort: false
+  Indexing..
+  Found 5 results.
+  [{1, 1.25276}, {4, 0.55962}, {5, 0.55962}, {6, 0.55962}, {7, 5.01105}]
+
+  # ranking with relevancy
+  iex(6)> IR.q "christopher columbus carlo eyck galileo galilei", sort: true
+  Indexing..
+  Found 5 results.
+  [{7, 5.01105}, {1, 1.25276}, {4, 0.55962}, {5, 0.55962}, {6, 0.55962}]
 
 
 ```
