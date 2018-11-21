@@ -142,11 +142,14 @@ defmodule IR do
   end
 
   # simple tokenisation, could clean/stem/remove stopwords later
-  @doc false
+  @doc """
+    Process text: tokenisation, downcase etc.
+  """
   def analyse(text) do
     text
     |> String.downcase
-    |> String.split(" ")
+    |> String.replace(~r/[\p{P}\p{S}]/, " ") # strip punctuation
+    |> String.split(" ", trim: true)
     |> Enum.uniq
   end
 
